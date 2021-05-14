@@ -1,5 +1,6 @@
 # Project 1: Query Project
 
+- my new change
 - In the Query Project, you will get practice with SQL while learning about
   Google Cloud Platform (GCP) and BiqQuery. You'll answer business-driven
   questions using public datasets housed in GCP. To give you experience with
