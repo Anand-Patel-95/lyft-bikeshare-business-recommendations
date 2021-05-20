@@ -11,10 +11,10 @@
 
 - You're a data scientist at Lyft Bay Wheels (https://www.lyft.com/bikes/bay-wheels), formerly known as Ford GoBike, the
   company running Bay Area Bikeshare. You are trying to increase ridership, and
-  you want to offer deals through the mobile app to do so. 
-  
-- What deals do you offer though? Currently, your company has several options which can change over time.  Please visit the website to see the current offers and other marketing information. Frequent offers include: 
-  * Single Ride 
+  you want to offer deals through the mobile app to do so.
+
+- What deals do you offer though? Currently, your company has several options which can change over time.  Please visit the website to see the current offers and other marketing information. Frequent offers include:
+  * Single Ride
   * Monthly Membership
   * Annual Membership
   * Bike Share for All
@@ -22,22 +22,22 @@
   * Corporate Membership
   * etc.
 
-- Through this project, you will answer these questions: 
+- Through this project, you will answer these questions:
 
-  * What are the 5 most popular trips that you would call "commuter trips"? 
-  
+  * What are the 5 most popular trips that you would call "commuter trips"?
+
   * What are your recommendations for offers (justify based on your findings)?
 
-- Please note that there are no exact answers to the above questions, just like in the proverbial real world.  This is not a simple exercise where each question above will have a simple SQL query. It is an exercise in analytics over inexact and dirty data. 
+- Please note that there are no exact answers to the above questions, just like in the proverbial real world.  This is not a simple exercise where each question above will have a simple SQL query. It is an exercise in analytics over inexact and dirty data.
 
 - You won't find a column in a table labeled "commuter trip".  You will find you need to do quite a bit of data exploration using SQL queries to determine your own definition of a communter trip.  In data exploration process, you will find a lot of dirty data, that you will need to either clean or filter out. You will then write SQL queries to find the communter trips.
 
-- Likewise to make your recommendations, you will need to do data exploration, cleaning or filtering dirty data, etc. to come up with the final queries that will give you the supporting data for your recommendations. You can make any recommendations regarding the offers, including, but not limited to: 
-  * market offers differently to generate more revenue 
-  * remove offers that are not working 
+- Likewise to make your recommendations, you will need to do data exploration, cleaning or filtering dirty data, etc. to come up with the final queries that will give you the supporting data for your recommendations. You can make any recommendations regarding the offers, including, but not limited to:
+  * market offers differently to generate more revenue
+  * remove offers that are not working
   * modify exising offers to generate more revenue
   * create new offers for hidden business opportunities you have found
-  * etc. 
+  * etc.
 
 #### All Work MUST be done in the Google Cloud Platform (GCP) / The Majority of Work MUST be done using BigQuery SQL / Usage of Temporary Tables, Views, Pandas, Data Visualizations
 
@@ -49,11 +49,11 @@ In the final Jupyter Notebook, the results of your BigQuery SQL will be read int
 
 #### GitHub Procedures
 
-In your Python class you used GitHub, with a single repo for all assignments, where you committed without doing a pull request.  In this class, we will try to mimic the real world more closely, so our procedures will be enhanced. 
+In your Python class you used GitHub, with a single repo for all assignments, where you committed without doing a pull request.  In this class, we will try to mimic the real world more closely, so our procedures will be enhanced.
 
 Each project, including this one, will have it's own repo.
 
-Important:  In w205, please never merge your assignment branch to the master branch. 
+Important:  In w205, please never merge your assignment branch to the master branch.
 
 Using the git command line: clone down the repo, leave the master branch untouched, create an assignment branch, and move to that branch:
 - Open a linux command line to your virtual machine and be sure you are logged in as jupyter.
@@ -73,11 +73,11 @@ The project workflow follows this pattern, which may be repeated as many times a
 - Commit staged files `git commit -m "<meaningful comment about your changes>"`
 - Push the commit on your assignment branch from your clone to GitHub `git push origin assignment`
 
-Once you are done, go to the GitHub web interface and create a pull request comparing the assignment branch to the master branch.  Add your instructor, and only your instructor, as the reviewer.  The date and time stamp of the pull request is considered the submission time for late penalties. 
+Once you are done, go to the GitHub web interface and create a pull request comparing the assignment branch to the master branch.  Add your instructor, and only your instructor, as the reviewer.  The date and time stamp of the pull request is considered the submission time for late penalties.
 
 If you decide to make more changes after you have created a pull request, you can simply close the pull request (without merge!), make more changes, stage, commit, push, and create a final pull request when you are done.  Note that the last data and time stamp of the last pull request will be considered the submission time for late penalties.
 
-Make sure you receive the emails related to your repository! Your project feedback will be given as comment on the pull request. When you receive the feedback, you can address problems or simply comment that you have read the feedback. 
+Make sure you receive the emails related to your repository! Your project feedback will be given as comment on the pull request. When you receive the feedback, you can address problems or simply comment that you have read the feedback.
 AFTER receiving and answering the feedback, merge you PR to master. Your project only counts as complete once this is done.
 
 ---
@@ -126,19 +126,48 @@ Public Datasets: Bring up your Google BigQuery console, open the menu for the pu
 
 ### Some initial queries
 
-Paste your SQL query and answer the question in a sentence.  Be sure you properly format your queries and results using markdown. 
+Paste your SQL query and answer the question in a sentence.  Be sure you properly format your queries and results using markdown.
 
 - What's the size of this dataset? (i.e., how many trips)
+  - Answer: This dataset contains 983,648 trips.
+  ```sql
+  SELECT count(distinct trip_id) as total_trips
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+```
+
+    Row | total_trips
+    --- | ---
+    1 | 983648
+
 
 - What is the earliest start date and time and latest end date and time for a trip?
+  - Answer: The earliest start date and time is 8/29/2013 at 9:08 UTC. The latest end date and time is 08/31/2016 at 23:48 UTC.
+  ```sql
+  SELECT min(start_date) as earliest_start_date, max(end_date) as latest_end_date
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  ```
+
+    Row | earliest_start_date | latest_end_date
+    --- | --- | ---
+    1 | 2013-08-29 09:08:00 UTC | 2016-08-31 23:48:00 UTC
+
+
 
 - How many bikes are there?
+  - Answer: This dataset contains 700 distinct bikes.
+  ```sql
+  SELECT count(distinct bike_number) as total_unique_bikes
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  ```
 
+    Row | total_unique_bikes
+    --- | ---
+    1 | 700
 
 ### Questions of your own
 - Make up 3 questions and answer them using the Bay Area Bike Share Trips Data.  These questions MUST be different than any of the questions and queries you ran above.
 
-- Question 1: 
+- Question 1:
   * Answer:
   * SQL query:
 
@@ -173,7 +202,7 @@ from `bigquery-public-data.san_francisco_bikeshare.bikeshare_station_info`
 
 ---
 
-## Part 2 - Querying data from the BigQuery CLI 
+## Part 2 - Querying data from the BigQuery CLI
 
 - Use BQ from the Linux command line:
 
@@ -206,17 +235,17 @@ from `bigquery-public-data.san_francisco_bikeshare.bikeshare_station_info`
 Identify the main questions you'll need to answer to make recommendations (list
 below, add as many questions as you need).
 
-- Question 1: 
+- Question 1:
 
-- Question 2: 
+- Question 2:
 
-- Question 3: 
+- Question 3:
 
-- Question 4: 
+- Question 4:
 
 - ...
 
-- Question n: 
+- Question n:
 
 ### Answers
 
@@ -224,7 +253,7 @@ Answer at least 4 of the questions you identified above You can use either
 BigQuery or the bq command line tool.  Paste your questions, queries and
 answers below.
 
-- Question 1: 
+- Question 1:
   * Answer:
   * SQL query:
 
@@ -235,11 +264,11 @@ answers below.
 - Question 3:
   * Answer:
   * SQL query:
-  
+
 - Question 4:
   * Answer:
   * SQL query:
-  
+
 - ...
 
 - Question n:
@@ -254,7 +283,7 @@ answers below.
 
 Create a Jupyter Notebook against a Python 3 kernel named Project_1.ipynb in the assignment branch of your repo.
 
-#### Run queries in the notebook 
+#### Run queries in the notebook
 
 At the end of this document is an example Jupyter Notebook you can take a look at and run.  
 
@@ -264,9 +293,9 @@ You can run queries using the "bang" command to shell out, such as this:
 ! bq query --use_legacy_sql=FALSE '<your-query-here>'
 ```
 
-- NOTE: 
-- Queries that return over 16K rows will not run this way, 
-- Run groupbys etc in the bq web interface and save that as a table in BQ. 
+- NOTE:
+- Queries that return over 16K rows will not run this way,
+- Run groupbys etc in the bq web interface and save that as a table in BQ.
 - Max rows is defaulted to 100, use the command line parameter `--max_rows=1000000` to make it larger
 - Query those tables the same way as in `example.ipynb`
 
@@ -289,8 +318,8 @@ my_panda_data_frame
 
 - Using markdown cells, MUST definitively state and answer the two project questions:
 
-  * What are the 5 most popular trips that you would call "commuter trips"? 
-  
+  * What are the 5 most popular trips that you would call "commuter trips"?
+
   * What are your recommendations for offers (justify based on your findings)?
 
 - For any temporary tables (or views) that you created, include the SQL in markdown cells
@@ -301,7 +330,6 @@ my_panda_data_frame
 
 - Use code cells to create simple data visualizations using Seaborn / Matplotlib (at least 2) to present or support your findings
 
-### Resource: see example .ipynb file 
+### Resource: see example .ipynb file
 
 [Example Notebook](example.ipynb)
-
