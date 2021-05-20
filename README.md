@@ -185,13 +185,32 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
     5 | Embarcadero at Sansome | Steuart at Market | 6874
 
 
-- Question 2:
-  * Answer:
+- Question 2: What is the number of trips made by different subscriber types?
+  * Answer: Subscribers made 846,839 trips. This includes annual or 30-day members. Customers made 136,809 trips. This includes 24-hour or 3-day members.
   * SQL query:
+  ```sql
+  SELECT subscriber_type, count(distinct trip_id) as num_trips
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  group by subscriber_type order by num_trips DESC
+  ```
 
-- Question 3:
-  * Answer:
+    Row | subscriber_type | num_trips
+    --- | --- | ---
+    1 | Subscriber | 846839
+    2 | Customer | 136809
+
+
+- Question 3: What is the average trip duration?
+  * Answer: The average duration of a trip is about 17 minutes.
   * SQL query:
+  ```sql
+  SELECT avg(duration_sec) as avg_trip_duration, (avg(duration_sec)/60) as avg_trip_duration_min
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  ```
+
+    Row | avg_trip_duration | avg_trip_duration_min
+    --- | --- | ---
+    1 | 1018.9323467338004 | 16.982205778896674
 
 ### Bonus activity queries (optional - not graded - just this section is optional, all other sections are required)
 
