@@ -167,9 +167,23 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
 ### Questions of your own
 - Make up 3 questions and answer them using the Bay Area Bike Share Trips Data.  These questions MUST be different than any of the questions and queries you ran above.
 
-- Question 1:
-  * Answer:
+- Question 1: What are the top 5 most frequent distinct trips, defined by start station and end station?
+  * Answer: Here we have the top 5 most frequent trips made, defined by how many distinct trips were made from the specified starting station to the specified ending station. 1)  Harry Bridges Plaza (Ferry Building) to Embarcadero at Sansome, 2) San Francisco Caltrain 2 (330 Townsend) to Townsend at 7th, 3)	2nd at Townsend to Harry Bridges Plaza (Ferry Building), 4) Harry Bridges Plaza (Ferry Building) to 2nd at Townsend, 5) Embarcadero at Sansome to Steuart at Market.
   * SQL query:
+  ```sql
+  SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  group by start_station_name, end_station_name order by (num_trips) DESC
+  ```
+
+    Row | start_station_name | end_station_name | num_trips
+    --- | --- | --- | ---
+    1 | Harry Bridges Plaza (Ferry Building) | Embarcadero at Sansome | 9150
+    2 | San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 8508
+    3 | 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 7620
+    4 | Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 6888
+    5 | Embarcadero at Sansome | Steuart at Market | 6874
+
 
 - Question 2:
   * Answer:
