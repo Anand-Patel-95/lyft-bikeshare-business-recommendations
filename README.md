@@ -133,7 +133,7 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
   ```sql
   SELECT count(distinct trip_id) as total_trips
   FROM `bigquery-public-data.san_francisco.bikeshare_trips`
-```
+  ```
 
     Row | total_trips
     --- | ---
