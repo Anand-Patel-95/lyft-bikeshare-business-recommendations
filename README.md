@@ -190,8 +190,8 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
   * SQL query:
   ```sql
   SELECT subscriber_type, count(distinct trip_id) as num_trips, ROUND((count(distinct trip_id)/983648)*100, 2) as percentage
-FROM `bigquery-public-data.san_francisco.bikeshare_trips`
-group by subscriber_type order by num_trips DESC
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  group by subscriber_type order by num_trips DESC
   ```
 
     Row | subscriber_type | num_trips | percentage
@@ -371,13 +371,13 @@ answers below.
     END AS time_of_day
     FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
     WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
-)
-SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
-FROM base_tbl_tripsByWeekday
-WHERE starting_hour BETWEEN 6 AND 9
-group by start_station_name, end_station_name 
-order by (num_trips) DESC
-LIMIT 5
+  )
+  SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
+  FROM base_tbl_tripsByWeekday
+  WHERE starting_hour BETWEEN 6 AND 9
+  group by start_station_name, end_station_name 
+  order by (num_trips) DESC
+  LIMIT 5
   ```
 
   Row |	start_station_name |	end_station_name |	num_trips
@@ -403,13 +403,13 @@ LIMIT 5
     END AS time_of_day
     FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
     WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
-)
-SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
-FROM base_tbl_tripsByWeekday
-WHERE starting_hour BETWEEN 16 AND 19
-group by start_station_name, end_station_name 
-order by (num_trips) DESC
-LIMIT 5
+  )
+  SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
+  FROM base_tbl_tripsByWeekday
+  WHERE starting_hour BETWEEN 16 AND 19
+  group by start_station_name, end_station_name 
+  order by (num_trips) DESC
+  LIMIT 5
   ```
 
   Row |	start_station_name |	end_station_name |	num_trips
