@@ -141,7 +141,7 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
 
 
 - What is the earliest start date and time and latest end date and time for a trip?
-  - Answer: The earliest start date and time is 8/29/2013 at 9:08 UTC. The latest end date and time is 08/31/2016 at 23:48 UTC.
+  - Answer: The earliest start date and time is 8/29/2013 at 9:08 PST. The latest end date and time is 08/31/2016 at 23:48 PST. These times are in PST according to the schema and also confirmed to be through some initial queries that confirmed that AM times were popular during weekday trips.
   ```sql
   SELECT min(start_date) as earliest_start_date, max(end_date) as latest_end_date
   FROM `bigquery-public-data.san_francisco.bikeshare_trips`
@@ -186,18 +186,18 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
 
 
 - Question 2: What is the number of trips made by different subscriber types?
-  * Answer: Subscribers made 846,839 trips. This includes annual or 30-day members. Customers made 136,809 trips. This includes 24-hour or 3-day members.
+  * Answer: Subscribers made 846,839 trips or 86.09% of all trips. This includes annual or 30-day members. Customers made 136,809 trips or 13.91% of all trips. This includes 24-hour or 3-day members.
   * SQL query:
   ```sql
-  SELECT subscriber_type, count(distinct trip_id) as num_trips
-  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
-  group by subscriber_type order by num_trips DESC
+  SELECT subscriber_type, count(distinct trip_id) as num_trips, ROUND((count(distinct trip_id)/983648)*100, 2) as percentage
+FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+group by subscriber_type order by num_trips DESC
   ```
 
-    Row | subscriber_type | num_trips
-    --- | --- | ---
-    1 | Subscriber | 846839
-    2 | Customer | 136809
+    Row | subscriber_type | num_trips | percentage
+    --- | --- | --- | ---
+    1 | Subscriber | 846839 | 86.09
+    2 | Customer | 136809 | 13.91
 
 
 - Question 3: What is the average trip duration?
@@ -255,24 +255,94 @@ from `bigquery-public-data.san_francisco_bikeshare.bikeshare_station_info`
 
   * What's the size of this dataset? (i.e., how many trips)
 
+  ```
+  bq query --use_legacy_sql=false '
+        SELECT count(distinct trip_id) as total_trips
+        FROM `bigquery-public-data.san_francisco.bikeshare_trips`'
+  ```
+```
+  +-------------+
+  | total_trips |
+  +-------------+
+  |      983648 |
+  +-------------+
+```
+
+
   * What is the earliest start time and latest end time for a trip?
 
+  ```
+  bq query --use_legacy_sql=false '
+        SELECT min(start_date) as earliest_start_date, max(end_date) as latest_end_date
+        FROM `bigquery-public-data.san_francisco.bikeshare_trips`'
+  ```
+```
++---------------------+---------------------+
+| earliest_start_date |   latest_end_date   |
++---------------------+---------------------+
+| 2013-08-29 09:08:00 | 2016-08-31 23:48:00 |
++---------------------+---------------------+
+```
+
   * How many bikes are there?
+
+  ```
+  bq query --use_legacy_sql=false '
+      SELECT count(distinct bike_number) as total_unique_bikes
+      FROM `bigquery-public-data.san_francisco.bikeshare_trips`'
+  ```
+```
++--------------------+
+| total_unique_bikes |
++--------------------+
+|                700 |
++--------------------+
+```
+
 
 2. New Query (Run using bq and paste your SQL query and answer the question in a sentence, using properly formatted markdown):
 
   * How many trips are in the morning vs in the afternoon?
+  * Answer: Defining trips made between 6AM and 12PM as morning trips and trips made between 12PM and 6PM as afternoon trips, then there are 446,771 trips in the morning vs 428,818 trips in the afternoon.
+
+  ```
+  bq query --use_legacy_sql=false '
+  SELECT time_of_day, count(distinct trip_id) as num_trips
+  FROM (
+    SELECT
+    *, EXTRACT(HOUR FROM start_date) as starting_hour,
+    CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN "morning (6am to 12 pm)"
+    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN "afternoon (12pm to 6 pm)"
+    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN "evening (6pm to 9pm)"
+    ELSE "night (9pm to 6am)"
+    END AS time_of_day
+    FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+)
+group by time_of_day
+order by (num_trips) DESC'
+  ```
+
+  ```
+  +--------------------------+-----------+
+  |       time_of_day        | num_trips |
+  +--------------------------+-----------+
+  | morning (6am to 12 pm)   |    446771 |
+  | afternoon (12pm to 6 pm) |    428818 |
+  | evening (6pm to 9pm)     |     79076 |
+  | night (9pm to 6am)       |     28983 |
+  +--------------------------+-----------+
+  ```
 
 
 ### Project Questions
 Identify the main questions you'll need to answer to make recommendations (list
 below, add as many questions as you need).
 
-- Question 1:
+- Question 1: What are the most frequent weekday trips made in the morning rush hour times (6am to 9 am)?
 
-- Question 2:
+- Question 2: What are the most frequent weekday trips made in the evening rush hour times (4pm to 7pm)?
 
-- Question 3:
+- Question 3: What are the most frequent weekday trips made in the morning or evening rush hour times?
 
 - Question 4:
 
@@ -286,17 +356,104 @@ Answer at least 4 of the questions you identified above You can use either
 BigQuery or the bq command line tool.  Paste your questions, queries and
 answers below.
 
-- Question 1:
+- Question 1: What are the most frequent weekday trips made in the morning rush hour times (6am to 9 am)?
   * Answer:
   * SQL query:
 
-- Question 2:
+  ```sql
+  WITH base_tbl_tripsByWeekday AS (
+    SELECT
+    *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour,
+    CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN 'morning (6am to 12 pm)'
+    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN 'afternoon (12pm to 6 pm)'
+    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN 'evening (6pm to 9pm)'
+    ELSE 'night (9pm to 6am)'
+    END AS time_of_day
+    FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
+    WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
+)
+SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
+FROM base_tbl_tripsByWeekday
+WHERE starting_hour BETWEEN 6 AND 9
+group by start_station_name, end_station_name 
+order by (num_trips) DESC
+LIMIT 5
+  ```
+
+  Row |	start_station_name |	end_station_name |	num_trips
+  --- | --- | --- | ---
+  1	| Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 4842
+  2	| Steuart at Market | 2nd at Townsend | 3837
+  3	| San Francisco Caltrain (Townsend at 4th) | Temporary Transbay Terminal (Howard at Beale) | 3817
+  4	| San Francisco Caltrain (Townsend at 4th) | Embarcadero at Folsom | 3622
+  5	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 3620
+
+- Question 2: What are the most frequent weekday trips made in the evening rush hour times (3pm to 7pm)?
   * Answer:
   * SQL query:
 
-- Question 3:
+  ```sql
+  WITH base_tbl_tripsByWeekday AS (
+    SELECT
+    *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour,
+    CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN 'morning (6am to 12 pm)'
+    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN 'afternoon (12pm to 6 pm)'
+    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN 'evening (6pm to 9pm)'
+    ELSE 'night (9pm to 6am)'
+    END AS time_of_day
+    FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
+    WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
+)
+SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
+FROM base_tbl_tripsByWeekday
+WHERE starting_hour BETWEEN 16 AND 19
+group by start_station_name, end_station_name 
+order by (num_trips) DESC
+LIMIT 5
+  ```
+
+  Row |	start_station_name |	end_station_name |	num_trips
+  --- | --- | --- | ---
+  1	| 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 4456
+  2	| Embarcadero at Sansome | Steuart at Market | 4282
+  3	| Embarcadero at Folsom | San Francisco Caltrain (Townsend at 4th) | 4180
+  4	| 2nd at South Park |Market at Sansome | 3573
+  5	| Steuart at Market | San Francisco Caltrain (Townsend at 4th) | 3567
+
+- Question 3: What are the most frequent weekday trips made in the morning or evening rush hour times?
   * Answer:
   * SQL query:
+
+  ```sql
+  WITH base_tbl_tripsByWeekday AS (
+      SELECT
+      *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour,
+      CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN 'morning (6am to 12 pm)'
+      WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN 'afternoon (12pm to 6 pm)'
+      WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN 'evening (6pm to 9pm)'
+      ELSE 'night (9pm to 6am)'
+      END AS time_of_day
+      FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
+      WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
+  )
+  SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips, avg(starting_hour) as average_starting_hour
+  FROM base_tbl_tripsByWeekday
+  WHERE (starting_hour BETWEEN 6 AND 9) OR (starting_hour BETWEEN 16 AND 19)
+  group by start_station_name, end_station_name 
+  order by (num_trips) DESC
+  LIMIT 5
+  ```
+
+
+  Row	| start_station_name |	end_station_name |	num_trips |	average_starting_hour
+  --- | --- | --- | --- | ---
+  1	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 5918 | 11.886617100371748
+  2	| Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 5746 | 9.407935955447288
+  3	| 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 5512 | 15.190493468795353
+  4	| Embarcadero at Sansome | Steuart at Market | 5361 | 15.222533109494503
+  5	| San Francisco Caltrain (Townsend at 4th) | Harry Bridges Plaza (Ferry Building) | 5255 | 11.19714557564222
+
+
 
 - Question 4:
   * Answer:
