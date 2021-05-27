@@ -370,7 +370,7 @@ answers below.
     ELSE 'night (9pm to 6am)'
     END AS time_of_day
     FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
-    WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
+    WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
   )
   SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
   FROM base_tbl_tripsByWeekday
@@ -382,11 +382,11 @@ answers below.
 
   Row |	start_station_name |	end_station_name |	num_trips
   --- | --- | --- | ---
-  1	| Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 4842
-  2	| Steuart at Market | 2nd at Townsend | 3837
-  3	| San Francisco Caltrain (Townsend at 4th) | Temporary Transbay Terminal (Howard at Beale) | 3817
-  4	| San Francisco Caltrain (Townsend at 4th) | Embarcadero at Folsom | 3622
-  5	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 3620
+  1	| Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 4796
+  2	| Steuart at Market | 2nd at Townsend | 3815
+  3	| San Francisco Caltrain (Townsend at 4th) | Temporary Transbay Terminal (Howard at Beale) | 3810
+  4	| San Francisco Caltrain (Townsend at 4th) | Embarcadero at Folsom | 3615
+  5	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 3592
 
 - Question 2: What are the most frequent weekday trips made in the evening rush hour times (3pm to 7pm)?
   * Answer:
@@ -402,7 +402,7 @@ answers below.
     ELSE 'night (9pm to 6am)'
     END AS time_of_day
     FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
-    WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
+    WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
   )
   SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips
   FROM base_tbl_tripsByWeekday
@@ -414,11 +414,11 @@ answers below.
 
   Row |	start_station_name |	end_station_name |	num_trips
   --- | --- | --- | ---
-  1	| 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 4456
-  2	| Embarcadero at Sansome | Steuart at Market | 4282
-  3	| Embarcadero at Folsom | San Francisco Caltrain (Townsend at 4th) | 4180
-  4	| 2nd at South Park |Market at Sansome | 3573
-  5	| Steuart at Market | San Francisco Caltrain (Townsend at 4th) | 3567
+  1	| 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 4329
+  2	| Embarcadero at Folsom | San Francisco Caltrain (Townsend at 4th) | 4134
+  3	| Embarcadero at Sansome | Steuart at Market | 4106
+  4	| 2nd at South Park |Market at Sansome | 3539
+  5	| Steuart at Market | San Francisco Caltrain (Townsend at 4th) | 3516
 
 - Question 3: What are the most frequent weekday trips made in the morning or evening rush hour times?
   * Answer:
@@ -434,7 +434,7 @@ answers below.
       ELSE 'night (9pm to 6am)'
       END AS time_of_day
       FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
-      WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 1 AND 7
+      WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
   )
   SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips, avg(starting_hour) as average_starting_hour
   FROM base_tbl_tripsByWeekday
@@ -447,11 +447,11 @@ answers below.
 
   Row	| start_station_name |	end_station_name |	num_trips |	average_starting_hour
   --- | --- | --- | --- | ---
-  1	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 5918 | 11.886617100371748
-  2	| Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 5746 | 9.407935955447288
-  3	| 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 5512 | 15.190493468795353
-  4	| Embarcadero at Sansome | Steuart at Market | 5361 | 15.222533109494503
-  5	| San Francisco Caltrain (Townsend at 4th) | Harry Bridges Plaza (Ferry Building) | 5255 | 11.19714557564222
+  1	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 5741 | 11.764849329385118
+  2	| Harry Bridges Plaza (Ferry Building) | 2nd at Townsend | 5539 | 9.184329301317941
+  3	| 2nd at Townsend | Harry Bridges Plaza (Ferry Building) | 5322 | 15.231491920330699
+  4	| Embarcadero at Sansome | Steuart at Market | 5164 | 15.190549961270307
+  5	| San Francisco Caltrain (Townsend at 4th) | Harry Bridges Plaza (Ferry Building) | 5087 | 11.155887556516609
 
 
 
