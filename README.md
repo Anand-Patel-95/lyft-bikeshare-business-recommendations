@@ -303,7 +303,7 @@ from `bigquery-public-data.san_francisco_bikeshare.bikeshare_station_info`
 2. New Query (Run using bq and paste your SQL query and answer the question in a sentence, using properly formatted markdown):
 
   * How many trips are in the morning vs in the afternoon?
-  * Answer: Defining trips made between 6AM and 12PM as morning trips and trips made between 12PM and 6PM as afternoon trips, then there are 446,771 trips in the morning vs 428,818 trips in the afternoon.
+  * Answer: Defining trips made between 6AM and 12PM as morning trips and trips made between 12PM and 6PM as afternoon trips, then there are 399,821 trips in the morning vs 391,199 trips in the afternoon.
 
   ```
   bq query --use_legacy_sql=false '
@@ -311,9 +311,9 @@ from `bigquery-public-data.san_francisco_bikeshare.bikeshare_station_info`
   FROM (
     SELECT
     *, EXTRACT(HOUR FROM start_date) as starting_hour,
-    CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN "morning (6am to 12 pm)"
-    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN "afternoon (12pm to 6 pm)"
-    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN "evening (6pm to 9pm)"
+    CASE WHEN EXTRACT(HOUR FROM start_date) >= 6 AND EXTRACT(HOUR FROM start_date) < 12 THEN "morning (6am to 12 pm)"
+    WHEN EXTRACT(HOUR FROM start_date) >= 12 AND EXTRACT(HOUR FROM start_date) < 18 THEN "afternoon (12pm to 6 pm)"
+    WHEN EXTRACT(HOUR FROM start_date) >= 18 AND EXTRACT(HOUR FROM start_date) < 21 THEN "evening (6pm to 9pm)"
     ELSE "night (9pm to 6am)"
     END AS time_of_day
     FROM `bigquery-public-data.san_francisco.bikeshare_trips`
@@ -326,10 +326,10 @@ order by (num_trips) DESC'
   +--------------------------+-----------+
   |       time_of_day        | num_trips |
   +--------------------------+-----------+
-  | morning (6am to 12 pm)   |    446771 |
-  | afternoon (12pm to 6 pm) |    428818 |
-  | evening (6pm to 9pm)     |     79076 |
-  | night (9pm to 6am)       |     28983 |
+  | morning (6am to 12 pm)   |    399821 |
+  | afternoon (12pm to 6 pm) |    391199 |
+  | evening (6pm to 9pm)     |    148387 |
+  | night (9pm to 6am)       |     44241 |
   +--------------------------+-----------+
   ```
 
