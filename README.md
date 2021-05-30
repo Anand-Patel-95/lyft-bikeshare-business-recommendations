@@ -201,16 +201,72 @@ Paste your SQL query and answer the question in a sentence.  Be sure you properl
 
 
 - Question 3: What is the average trip duration?
-  * Answer: The average duration of a trip is about 17 minutes.
+  * Answer: The average duration of a trip is about 16.5 minutes.
+
   * SQL query:
   ```sql
-  SELECT avg(duration_sec) as avg_trip_duration, (avg(duration_sec)/60) as avg_trip_duration_min
-  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  # find outliers: different durations for bins
+  WITH subtable_trip AS (
+      SELECT 
+          CASE 
+              WHEN duration_sec / (3600*24) >= 14 THEN "> 14 days"
+              WHEN duration_sec / (3600*24) >= 7 THEN "> 7 days"
+              WHEN duration_sec / (3600*24) >= 1 THEN "> 1 day"
+              WHEN duration_sec / (3600) < 24 AND duration_sec / (3600) >= 10 THEN "10-24 hours"
+              WHEN duration_sec / (3600) < 10 AND duration_sec / (3600) >= 5 THEN "5-10 hours"
+              WHEN duration_sec / (3600) < 5 AND duration_sec / (3600) >= 4 THEN "4-5 hours"
+              WHEN duration_sec / (3600) < 4 AND duration_sec / (3600) >= 3 THEN "3-4 hours"
+              WHEN duration_sec / (3600) < 3 AND duration_sec / (3600) >= 2 THEN "2-3 hours"
+              WHEN duration_sec / (3600) < 2 AND duration_sec / (3600) >= 1 THEN "1-2 hours"
+              WHEN duration_sec / (60) < 60 AND duration_sec / (60) >= 30 THEN "30-60 minutes"
+              WHEN duration_sec / (60) < 30 AND duration_sec / (60) >= 20 THEN "20-30 minutes"
+              WHEN duration_sec / (60) < 20 AND duration_sec / (60) >= 10 THEN "10-20 minutes"
+              WHEN duration_sec / (60) < 10 AND duration_sec / (60) >= 5 THEN "5-10 minutes"
+              WHEN duration_sec / (60) < 5  THEN "< 5 minutes"
+          END AS duration_category
+          FROM 
+              `bigquery-public-data.san_francisco.bikeshare_trips`       
+  )
+  SELECT duration_category, count(duration_category) as num_trips, round(100*count(duration_category)/983648, 2) as percent_trips
+  FROM subtable_trip
+  group by duration_category 
+  order by (percent_trips) DESC
   ```
 
-    Row | avg_trip_duration | avg_trip_duration_min
-    --- | --- | ---
-    1 | 1018.9323467338004 | 16.982205778896674
+    | Row | duration_category | num_trips | percent_trips |
+    |-----|-------------------|-----------|---------------|
+    | 1   | 5-10 minutes      | 415936    | 42.29         |
+    | 2   | 10-20 minutes     | 303297    | 30.83         |
+    | 3   | < 5 minutes       | 178692    | 18.17         |
+    | 4   | 20-30 minutes     | 38355     | 3.9           |
+    | 5   | 30-60 minutes     | 19272     | 1.96          |
+    | 6   | 1-2 hours         | 11893     | 1.21          |
+    | 7   | 2-3 hours         | 5629      | 0.57          |
+    | 8   | 5-10 hours        | 3454      | 0.35          |
+    | 9   | 3-4 hours         | 3282      | 0.33          |
+    | 10  | 4-5 hours         | 2202      | 0.22          |
+    | 11  | 10-24 hours       | 1340      | 0.14          |
+    | 12  | > 1 day           | 283       | 0.03          |
+    | 13  | > 14 days         | 3         | 0.0           |
+    | 14  | > 7 days          | 10        | 0.0           |
+
+This query shows that there are 13 trips over 7 days, and they account for less than 0.01% of the total number of trips. However some of these long trips include trips spanning over 2 weeks and even a trip spanning 200 days. These are outliers for trip duration because they do not reflect the use case of our bikeshare service and inflate the average trip duration. We cannot make business decisions through the inclusion of these trips that are outside of our nominal operations. We do not typically allow users to take bikes for over a week.
+
+Therefore the average trip duration should be calculated by including only trips under 1 week in duration.
+
+
+  * SQL query:
+  ```sql
+  # filter outliers: 
+  # Trips over 7 days account for less than 0.01% of the total trips, and serve as outliers for the starting time
+  SELECT avg(duration_sec) as avg_trip_duration, round((avg(duration_sec)/60),3) as avg_trip_duration_min 
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  WHERE duration_sec/3600/24 < 7 ---No trips over 7 days
+  ```
+
+  | Row | avg_trip_duration | avg_trip_duration_min |
+  |-----|-------------------|-----------------------|
+  | 1   | 989.983637223134  | 16.5                  |
 
 ### Bonus activity queries (optional - not graded - just this section is optional, all other sections are required)
 
