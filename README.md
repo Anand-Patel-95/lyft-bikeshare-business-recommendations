@@ -400,7 +400,15 @@ below, add as many questions as you need).
 
 - Question 3: What are the most frequent weekday trips made in the morning or evening rush hour times?
 
-- Question 4:
+- Question 4: What is the percentage of total trips that are commuter trips? What percentage of commuter trips are taken by subscribers vs customers?
+
+- Question 5: What are the most popular commuter stations? Looking at the top 10 commuter trips.
+
+- Question 6: What is the average trip duration for the most popular commuter trips?
+
+- Question 7: What is the number of trips taken by month? By Day? What is the average trip duration by month, by day?
+
+- Question 8: How many trips would be affected if we reduced the include time for subscriber trips to 15 min? Limiting this cap during weekdays?
 
 - ...
 
@@ -496,7 +504,104 @@ answers below.
 
 
 
-- Question 4:
+- Question 4: What is the percentage of total trips that are commuter trips? What percentage of commuter trips are taken by subscribers vs customers?
+  * Answer: 62.7% of all trips are commuter trips, they start during morning or evening rush hour times during the weekdays. Of these commuter trips, 94.3% of them are subscribers and 5.7% are customers. This means that the majority of our riders are commuters and the majority of these commuters are already subscribers. The second most frequent trips taken are also during the weekday, outside of rush hour. Even then, subscribers make up 81.7% of non commuter trip riders on weekdays. On weekends, there is almost a 50/50 split between subscribers and customers. Weekend trips account for roughly 11.4% of all trips, while weekdays account for 89.6% of all trips.
+  * SQL query:
+
+  ```sql
+  SELECT 
+    during_week,
+    commuter_hours,
+    round(100*COUNT(distinct trip_id)/983648, 1) as percent_total_trips,
+    COUNT(distinct trip_id) as num_trips,
+    round(100*SUM(is_sub)/COUNT(distinct trip_id), 1) as percent_subscribers,
+    round(100*SUM(is_cus)/COUNT(distinct trip_id), 1) as percent_customers,
+    FROM (
+        SELECT 
+            *,
+            CONCAT(start_station_name, ' ---> ', end_station_name) as start_end_pair,
+            EXTRACT (HOUR from start_date) as starting_hour,
+            CASE
+                WHEN EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6 THEN "weekday"
+                ELSE "weekend"
+            END as during_week,
+            CASE 
+                WHEN (EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 9) OR (EXTRACT(HOUR FROM start_date) BETWEEN 16 AND 19) THEN "yes"
+                ELSE "no"
+            END AS commuter_hours,
+            CASE 
+                WHEN (subscriber_type = "Subscriber") THEN 1
+                ELSE 0
+            END AS is_sub,
+            CASE 
+                WHEN (subscriber_type = "Customer") THEN 1
+                ELSE 0
+            END AS is_cus,
+        FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+        WHERE duration_sec/2600/24 < 7
+    )
+  ---during morning or evening rush hour times 
+  group by during_week, commuter_hours
+  order by percent_total_trips
+  DESC
+  ```
+  | Row | during_week | commuter_hours | percent_total_trips | num_trips | percent_subscribers | percent_customers |
+  |-----|-------------|----------------|---------------------|-----------|---------------------|-------------------|
+  | 1   | weekday     | yes            | 62.7                | 617090    | 94.3                | 5.7               |
+  | 2   | weekday     | no             | 25.9                | 254891    | 81.7                | 18.3              |
+  | 3   | weekend     | no             | 7.3                 | 71413     | 49.0                | 51.0              |
+  | 4   | weekend     | yes            | 4.1                 | 40228     | 53.6                | 46.4              |
+
+
+
+- Question 5: What are the most popular commuter stations? Looking at the top 10 commuter trips.
+  * Answer: Among the top 10 commuter trips, counting both start stations and end stations, the most popular commuter stations were the following 9 stations. These stations encompass all of the top commuter trips in the morning and evening. They are the stations most relied upon for commuter trips. In fact, looking at the top 100 most popular commuter trips reveals that only 36 stations are used. Commuter trips usually stop or end around a select few stations.
+  * SQL query:
+  ```sql
+  WITH commuter_trips_tbl AS (
+      WITH base_tbl_tripsByWeekday AS (
+      SELECT 
+      *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour
+      FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
+      WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
+      )
+      SELECT start_station_name, start_station_id, end_station_name, end_station_id, count(distinct trip_id) as num_trips, avg(starting_hour) as average_starting_hour
+      FROM base_tbl_tripsByWeekday
+      WHERE ((starting_hour BETWEEN 6 AND 9) OR (starting_hour BETWEEN 16 AND 19)) AND (duration_sec/3600/24 < 7)
+      group by start_station_name, start_station_id, end_station_name, end_station_id
+      order by (num_trips) DESC
+      LIMIT 10
+  )
+  SELECT start_station_name as commuter_station_name, start_station_id as station_id
+  FROM commuter_trips_tbl
+  UNION DISTINCT
+  SELECT end_station_name, end_station_id
+  FROM commuter_trips_tbl
+  ```
+
+  | Row | commuter_station_name                         | station_id          |
+  |-----|-----------------------------------------------|---------------------|
+  | 1   | San Francisco Caltrain 2 (330 Townsend)       | 69                  |
+  | 2   | Harry Bridges Plaza (Ferry Building)          | 50                  |
+  | 3   | 2nd at Townsend                               | 61                  |
+  | 4   | Embarcadero at Sansome                        | 60                  |
+  | 5   | San Francisco Caltrain (Townsend at 4th)      | 70                  |
+  | 6   | Embarcadero at Folsom                         | 51                  |
+  | 7   | Townsend at 7th                               | 65                  |
+  | 8   | Steuart at Market                             | 74                  |
+  | 9   | Temporary Transbay Terminal (Howard at Beale) | 55                  |
+
+- Question 6: What is the average trip duration for the most popular commuter trips?
+  * Answer: 
+  * SQL query:
+
+
+- Question 7: What is the number of trips taken by month? By Day? What is the average trip duration by month, by day?
+  * Answer:
+  * SQL query:
+
+
+- Question 8: How many trips would be affected if we reduced the include time for subscriber trips to 15 min? Limiting this cap during weekdays?
   * Answer:
   * SQL query:
 
