@@ -592,18 +592,147 @@ answers below.
   | 9   | Temporary Transbay Terminal (Howard at Beale) | 55                  |
 
 - Question 6: What is the average trip duration for the most popular commuter trips?
-  * Answer: 
+  * Answer: For the top 10 most popular commuter trips, the following table provides the average trip duration. Surprisingly, the average trip duration was relatively short, and all average trips were below 15 minutes in duration. The longest average duration was 12.16 min between San Francisco Caltrain (Townsend at 4th) and Harry Bridges Plaza (Ferry Building). Commuters seem to make their trips rather quickly
   * SQL query:
-
+  ```sql
+  WITH base_tbl_tripsByWeekday AS (
+      SELECT 
+      *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour
+      FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
+      WHERE (EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6) AND (duration_sec/3600/24 < 1)
+  )
+  SELECT start_station_name, end_station_name, count(distinct trip_id) as num_trips, round(avg(duration_sec/60),2) as avg_duration_min
+  FROM base_tbl_tripsByWeekday
+  WHERE (starting_hour BETWEEN 6 AND 9) OR (starting_hour BETWEEN 16 AND 19)
+  group by start_station_name, end_station_name 
+  order by (num_trips) DESC
+  LIMIT 10
+  ```
+  | Row | start_station_name                            | end_station_name                         | num_trips | avg_duration_min |
+  |-----|-----------------------------------------------|------------------------------------------|-----------|------------------|
+  | 1   | San Francisco Caltrain 2 (330 Townsend)       | Townsend at 7th                          | 5741      | 4.92             |
+  | 2   | Harry Bridges Plaza (Ferry Building)          | 2nd at Townsend                          | 5539      | 9.85             |
+  | 3   | 2nd at Townsend                               | Harry Bridges Plaza (Ferry Building)     | 5322      | 8.33             |
+  | 4   | Embarcadero at Sansome                        | Steuart at Market                        | 5164      | 7.18             |
+  | 5   | San Francisco Caltrain (Townsend at 4th)      | Harry Bridges Plaza (Ferry Building)     | 5087      | 12.16            |
+  | 6   | Embarcadero at Folsom                         | San Francisco Caltrain (Townsend at 4th) | 4915      | 10.41            |
+  | 7   | Townsend at 7th                               | San Francisco Caltrain 2 (330 Townsend)  | 4786      | 4.12             |
+  | 8   | Steuart at Market                             | 2nd at Townsend                          | 4754      | 8.92             |
+  | 9   | Steuart at Market                             | San Francisco Caltrain (Townsend at 4th) | 4740      | 11.95            |
+  | 10  | Temporary Transbay Terminal (Howard at Beale) | San Francisco Caltrain (Townsend at 4th) | 4721      | 10.88            |
 
 - Question 7: What is the number of trips taken by month? By Day? What is the average trip duration by month, by day?
-  * Answer:
-  * SQL query:
+  * Answer: From our monthly trips table, we can see that the number of trips taken reduces from November to the end of February. The lowest point for ridership is in December. This is likely due to the fact that many people take vacation during December, so the number of commuter trips would be reduced. Additionally, the cold weather of the Winter season months would reduce the number of bike trips people would take. Average trip duration does not change much throughout the months. 
+  
+    Looking at the trips taken by day, we can see that the weekend average trip duration is much longer than the weekday trip duration. On Saturday and Sunday, users might take longer leisure bike trips that reach upwards of 37 min duration on average. However on weekdays, the average trip duration is around 12-14 min long. This is most likely due to commuter trips and the sense of urgency to get to work or home on time. Friday average trip duration is slightly longer than other weekdays.
+    
+    Looking at the trips by hour, we can see that the number of trips taken spike during morning rush hour (6am - 10 am) and during evening rush hour (4pm to 8 pm). The duration of these trips is also much less than at other times, averaging usually below 15 minutes in duration. During the working day, outside of rush hour, trip duration exceeds 20 minutes. Outside of the work day and rush hour, usually at night or early morning, the trip duration is the longest.
 
+  * SQL query:
+  ```sql
+  # By Month
+  SELECT EXTRACT(MONTH FROM start_date) as Month, count(distinct trip_id) as num_trips, round(100*count(distinct trip_id)/983648,2) as percent_trips, round(avg(duration_sec/60),2) as avg_duration_min
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  WHERE round(duration_sec/3600/24) < 7
+  group by month
+  order by MONTH
+  ```
+  | Row | Month | num_trips | percent_trips | avg_duration_min |
+  |-----|-------|-----------|---------------|------------------|
+  | 1   | 1     | 71787     | 7.3           | 15.02            |
+  | 2   | 2     | 69983     | 7.11          | 15.39            |
+  | 3   | 3     | 81777     | 8.31          | 15.91            |
+  | 4   | 4     | 84194     | 8.56          | 15.45            |
+  | 5   | 5     | 86361     | 8.78          | 16.25            |
+  | 6   | 6     | 91670     | 9.32          | 16.47            |
+  | 7   | 7     | 89537     | 9.1           | 16.96            |
+  | 8   | 8     | 95576     | 9.72          | 16.95            |
+  | 9   | 9     | 87320     | 8.88          | 18.97            |
+  | 10  | 10    | 94377     | 9.59          | 16.66            |
+  | 11  | 11    | 73090     | 7.43          | 15.97            |
+  | 12  | 12    | 57959     | 5.89          | 16.98            |
+
+  ```sql
+  # By DOW
+  SELECT EXTRACT(DAYOFWEEK FROM start_date) as Day, count(distinct trip_id) as num_trips, round(100*count(distinct trip_id)/983648,2) as percent_trips, round(avg(duration_sec/60),2) as avg_duration_min
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  WHERE round(duration_sec/3600/24) < 7
+  group by Day
+  order by Day
+  ```
+
+  | Row | Day | num_trips | percent_trips | avg_duration_min |
+  |-----|-----|-----------|---------------|------------------|
+  | 1   | 1   | 51369     | 5.22          | 38.43            |
+  | 2   | 2   | 169936    | 17.28         | 13.47            |
+  | 3   | 3   | 184405    | 18.75         | 12.84            |
+  | 4   | 4   | 180764    | 18.38         | 12.93            |
+  | 5   | 5   | 176907    | 17.98         | 13.58            |
+  | 6   | 6   | 159975    | 16.26         | 16.06            |
+  | 7   | 7   | 60275     | 6.13          | 37.37            |
+
+  ```sql
+  # By HOUR
+  SELECT EXTRACT(HOUR FROM start_date) as hour, count(distinct trip_id) as num_trips, round(100*count(distinct trip_id)/983648,2) as percent_trips, round(avg(duration_sec/60),2) as avg_duration_min
+  FROM `bigquery-public-data.san_francisco.bikeshare_trips`
+  WHERE round(duration_sec/3600/24) < 7
+  group by hour
+  order by hour
+  ```
+  | Row | hour | num_trips | percent_trips | avg_duration_min |
+  |-----|------|-----------|---------------|------------------|
+  | 1   | 0    | 2929      | 0.3           | 26.52            |
+  | 2   | 1    | 1611      | 0.16          | 49.37            |
+  | 3   | 2    | 877       | 0.09          | 73.03            |
+  | 4   | 3    | 602       | 0.06          | 84.42            |
+  | 5   | 4    | 1398      | 0.14          | 19.67            |
+  | 6   | 5    | 5097      | 0.52          | 15.36            |
+  | 7   | 6    | 20518     | 2.09          | 12.55            |
+  | 8   | 7    | 67531     | 6.87          | 11.16            |
+  | 9   | 8    | 132463    | 13.47         | 11.03            |
+  | 10  | 9    | 96116     | 9.77          | 12.97            |
+  | 11  | 10   | 42781     | 4.35          | 23.43            |
+  | 12  | 11   | 40407     | 4.11          | 27.83            |
+  | 13  | 12   | 46950     | 4.77          | 24.62            |
+  | 14  | 13   | 43712     | 4.44          | 25.28            |
+  | 15  | 14   | 37852     | 3.85          | 27.22            |
+  | 16  | 15   | 47625     | 4.84          | 21.56            |
+  | 17  | 16   | 88754     | 9.02          | 15.69            |
+  | 18  | 17   | 126302    | 12.84         | 12.65            |
+  | 19  | 18   | 84568     | 8.6           | 13.32            |
+  | 20  | 19   | 41071     | 4.18          | 13.93            |
+  | 21  | 20   | 22746     | 2.31          | 15.25            |
+  | 22  | 21   | 15256     | 1.55          | 17.14            |
+  | 23  | 22   | 10270     | 1.04          | 19.22            |
+  | 24  | 23   | 6195      | 0.63          | 24.87            |
 
 - Question 8: How many trips would be affected if we reduced the include time for subscriber trips to 15 min? Limiting this cap during weekdays?
-  * Answer:
+  * Answer: Looking at commuter trips (those made during weekdays, during morning or evening rush hour times, with a duration of 1 day maximum), we see that 40,858 trips would have been charged more for lasting past our hypothetical 15 min limit for subscribers. This is a large amount of trips, and a lot of extra revenue would be generated if each of these trips were charged for time spent over 15 min. The average duration of these affected trips was 27.6 minutes, so a charging model that increased exponentially with time over 15 minutes would be effective in generating revenue as the trip duration approaches this high average of 27.6 minutes. This scaled charging model would not charge subscribers as much initially for being slightly over their 15 minutes, so we can minimize the number of subscribers who might leave. This 15 min limit should be imposed for weekday trips only as they are the largest volume of trips taken. 
+    
+    Additionally, we could introduce a new subscription model, priced higher than our current subscription, that includes over a 30 min limit for subscribers and an additional perk of day-pass ride time during weekends. The day-pass ride time for subscribers on the weekend will not impact business since we have far fewer trips taken during the weekend (11%),  and it could even motivate some customers who enjoy weekend trips to subscribe for day-pass rides.
+
   * SQL query:
+  ```sql
+  WITH commuter_trips_tbl AS (
+      WITH base_tbl_tripsByWeekday AS (
+      SELECT 
+      *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour
+      FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
+      WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6 
+      AND (((EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 9) OR (EXTRACT(HOUR FROM start_date) BETWEEN 16 AND 19)) AND (duration_sec/3600/24 < 1))
+      )
+      SELECT start_station_id, ROUND((duration_sec/60)) as dm
+      FROM base_tbl_tripsByWeekday
+      WHERE ROUND(duration_sec/60) > 15 AND subscriber_type = "Subscriber"
+      ORDER BY duration_sec
+  )
+   SELECT count(*) as num_trips, avg(dm) as avg_duration_min
+    FROM
+      commuter_trips_tbl
+  ```
+  | Row | num_trips | avg_duration_min   |
+  |-----|-----------|--------------------|
+  | 1   | 40858     | 27.649126242106714 |
 
 - ...
 
