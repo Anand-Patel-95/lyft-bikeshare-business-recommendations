@@ -421,7 +421,7 @@ BigQuery or the bq command line tool.  Paste your questions, queries and
 answers below.
 
 - Question 1: What are the most frequent weekday trips made in the morning rush hour times (6am to 9 am)?
-  * Answer:
+  * Answer: The 5 most frequent weekday trips made in morning rush hour times (starting between 6am and 10 am) are the morning commuter trips. The table below lists the 5 most frequently taken trips, by the number of trips taken. A popular trend for morning trips seems to be taking the train into the city and starting a bikeshare trip from the train station to another destination. This implies that the bikeshare service might be popular among people coming into the city for work. 
   * SQL query:
 
   ```sql
@@ -448,7 +448,7 @@ answers below.
   5	| San Francisco Caltrain 2 (330 Townsend) | Townsend at 7th | 3592
 
 - Question 2: What are the most frequent weekday trips made in the evening rush hour times (3pm to 7pm)?
-  * Answer:
+  * Answer: These trips constitute the most popular evening commuter trips. Please see the table below for details on the start and end stations. They are defined as weekday trips starting between 3pm and 8pm. We see a trend of people riding bikes to an end station resulting in a train station. This supports the idea that people use the bikeshare service to commute to work after getting into the city by train. This is not our only use case however.
   * SQL query:
 
   ```sql
@@ -475,7 +475,7 @@ answers below.
   5	| Steuart at Market | San Francisco Caltrain (Townsend at 4th) | 3516
 
 - Question 3: What are the most frequent weekday trips made in the morning or evening rush hour times?
-  * Answer:
+  * Answer: Looking at the most frequently taken weekday trips during either rush hour time results in our table below of the top 5 most popular commuter trips. These trips are any taken by our users during morning or evening rush hour on weekdays. These trips can be morning rush hour trips, evening rush hour trips, or even both (which is evidenced by the number of trips from Harry Bridges Plaza (Ferry Building) to 2nd at Townsend increasing past its morning rush hour count in Question 1). The average starting hour is a measure of if these trips are taken more in the morning rush hour (average less than 12 for noon) or evening rush hour (average over 12 for noon). The start and end stations define a trip, so these trips also highlight the most used stations by commuters.
   * SQL query:
 
   ```sql
