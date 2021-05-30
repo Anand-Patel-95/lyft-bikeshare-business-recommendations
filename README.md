@@ -419,12 +419,7 @@ answers below.
   ```sql
   WITH base_tbl_tripsByWeekday AS (
     SELECT
-    *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour,
-    CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN 'morning (6am to 12 pm)'
-    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN 'afternoon (12pm to 6 pm)'
-    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN 'evening (6pm to 9pm)'
-    ELSE 'night (9pm to 6am)'
-    END AS time_of_day
+    *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour
     FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
     WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
   )
@@ -451,12 +446,7 @@ answers below.
   ```sql
   WITH base_tbl_tripsByWeekday AS (
     SELECT
-    *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour,
-    CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN 'morning (6am to 12 pm)'
-    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN 'afternoon (12pm to 6 pm)'
-    WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN 'evening (6pm to 9pm)'
-    ELSE 'night (9pm to 6am)'
-    END AS time_of_day
+    *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour
     FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
     WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
   )
@@ -483,12 +473,7 @@ answers below.
   ```sql
   WITH base_tbl_tripsByWeekday AS (
       SELECT
-      *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour,
-      CASE WHEN EXTRACT(HOUR FROM start_date) BETWEEN 6 AND 12 THEN 'morning (6am to 12 pm)'
-      WHEN EXTRACT(HOUR FROM start_date) BETWEEN 12 AND 18 THEN 'afternoon (12pm to 6 pm)'
-      WHEN EXTRACT(HOUR FROM start_date) BETWEEN 18 AND 21 THEN 'evening (6pm to 9pm)'
-      ELSE 'night (9pm to 6am)'
-      END AS time_of_day
+      *, EXTRACT(DAYOFWEEK FROM start_date) as DOW, EXTRACT(HOUR FROM start_date) as starting_hour, EXTRACT(HOUR FROM end_date) as ending_hour
       FROM `bigquery-public-data.san_francisco.bikeshare_trips` 
       WHERE EXTRACT(DAYOFWEEK FROM start_date) BETWEEN 2 AND 6
   )
