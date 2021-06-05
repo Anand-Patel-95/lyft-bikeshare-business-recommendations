@@ -798,3 +798,7 @@ my_panda_data_frame
 ### Resource: see example .ipynb file
 
 [Example Notebook](example.ipynb)
+
+### My Part 3 .ipynb file:
+
+[Part 3 Notebook](Project_1.ipynb)
