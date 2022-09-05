@@ -1,4 +1,4 @@
-# Project 1: Query Project
+# Lyft Baywheels Bikeshare Business Analyst Recommendations 
 
 - The datasets are found on Google Cloud Platform (GCP), and detailed in Parts 1 & Parts 2.
   
